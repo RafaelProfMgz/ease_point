@@ -1,9 +1,3 @@
-Aqui está um **README.md** completo, profissional e detalhado para o seu projeto. Ele cobre desde a arquitetura até o fluxo de uso da API.
-
-Você pode copiar o código abaixo e salvar como `README.md` na raiz do seu projeto.
-
----
-
 ```markdown
 # Sistema de Ponto Backend (Multi-tenant)
 
