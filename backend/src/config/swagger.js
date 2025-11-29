@@ -1,17 +1,19 @@
 const swaggerJsDoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
 
-const swaggerOptions = {
-  swaggerDefinition: {
+const options = {
+  definition: {
     openapi: "3.0.0",
     info: {
-      title: "API de Ponto Eletrônico",
+      title: "Sistema de Ponto API",
       version: "1.0.0",
-      description: "Documentação da API de controle de pontos",
+      description: "API para gestão de empresas e pontos",
+      contact: {
+        name: "Suporte",
+      },
     },
     servers: [
       {
-        url: "http://localhost:3000", // Altere para a porta do seu servidor
+        url: "http://localhost:3001",
         description: "Servidor Local",
       },
     ],
@@ -24,15 +26,11 @@ const swaggerOptions = {
         },
       },
     },
-    security: [
-      {
-        bearerAuth: [],
-      },
-    ],
   },
-  apis: ["./routes/*.js"],
+
+  apis: ["./src/routes/*.js"],
 };
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
+const specs = swaggerJsDoc(options);
 
-module.exports = { swaggerUi, swaggerDocs };
+module.exports = specs;

@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/userController");
+const authMiddleware = require("../middlewares/authMiddleware");
 
 /**
  * @swagger
@@ -12,74 +13,49 @@ const controller = require("../controllers/userController");
  *         id:
  *           type: string
  *           format: uuid
- *           description: ID único do usuário (Supabase Auth ID)
  *         name:
  *           type: string
  *         email:
  *           type: string
- *           format: email
  *         company_id:
  *           type: string
  *           format: uuid
  *         role:
  *           type: string
- *           description: Papel do usuário (ex: employee, admin)
- *         created_at:
- *           type: string
- *           format: date-time
+ *           description: "Papel do usuário (ex: admin, employee)"
  *     LoginInput:
  *       type: object
- *       required:
- *         - email
- *         - password
+ *       required: [email, password]
  *       properties:
- *         email:
- *           type: string
- *           format: email
- *         password:
- *           type: string
- *           format: password
+ *         email: { type: string, example: "admin@empresa.com" }
+ *         password: { type: string, example: "123456" }
  *     CreateEmployeeInput:
  *       type: object
- *       required:
- *         - name
- *         - email
- *         - password
- *         - company_id
+ *       required: [name, email, password, company_id]
  *       properties:
- *         name:
- *           type: string
- *         email:
- *           type: string
- *           format: email
- *         password:
- *           type: string
- *           format: password
- *         company_id:
- *           type: string
- *           format: uuid
+ *         name: { type: string }
+ *         email: { type: string }
+ *         password: { type: string }
+ *         company_id: { type: string, format: uuid }
  *     AuthResponse:
  *       type: object
  *       properties:
- *         session:
- *           type: object
- *           description: Objeto de sessão do Supabase
- *         user:
- *           $ref: '#/components/schemas/User'
+ *         session: { type: object, description: "Token JWT do Supabase" }
+ *         user: { $ref: '#/components/schemas/User' }
  */
 
 /**
  * @swagger
  * tags:
  *   name: Users
- *   description: Gerenciamento de usuários e autenticação
+ *   description: Gestão de usuários
  */
 
 /**
  * @swagger
  * /users/login:
  *   post:
- *     summary: Realiza login do usuário
+ *     summary: Realizar Login
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -89,13 +65,13 @@ const controller = require("../controllers/userController");
  *             $ref: '#/components/schemas/LoginInput'
  *     responses:
  *       200:
- *         description: Login realizado com sucesso
+ *         description: Sucesso (Retorna Token)
  *         content:
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/AuthResponse'
  *       401:
- *         description: Email ou senha inválidos
+ *         description: Credenciais inválidas
  */
 router.post("/login", controller.login);
 
@@ -103,7 +79,7 @@ router.post("/login", controller.login);
  * @swagger
  * /users/register:
  *   post:
- *     summary: Cria um novo funcionário (Registro)
+ *     summary: Criar novo funcionário
  *     tags: [Users]
  *     requestBody:
  *       required: true
@@ -113,176 +89,149 @@ router.post("/login", controller.login);
  *             $ref: '#/components/schemas/CreateEmployeeInput'
  *     responses:
  *       201:
- *         description: Funcionário criado com sucesso
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
+ *         description: Funcionário criado
  *       400:
- *         description: Erro na criação (ex: email já existe)
+ *         description: "Erro (ex: email já existe)"
  */
 router.post("/register", controller.createEmployee);
+
+// --- ROTAS PROTEGIDAS ---
 
 /**
  * @swagger
  * /users:
  *   get:
- *     summary: Lista todos os usuários
+ *     summary: Listar todos os usuários
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de usuários recuperada
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *         description: Lista completa
  */
-router.get("/", controller.listUsers);
+router.get("/", authMiddleware, controller.listUsers);
 
 /**
  * @swagger
  * /users/search:
  *   get:
- *     summary: Busca usuário por email
+ *     summary: Buscar usuário por email (Query Param)
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: query
  *         name: email
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
- *         description: Email do usuário
+ *         description: Email exato do usuário
  *     responses:
  *       200:
  *         description: Usuário encontrado
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       500:
- *         description: Erro no servidor
  */
-router.get("/search", controller.searchUser);
+router.get("/search", authMiddleware, controller.searchUser);
 
 /**
  * @swagger
  * /users/company/{id}:
  *   get:
- *     summary: Lista usuários de uma empresa específica
+ *     summary: Listar usuários de uma empresa
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
  *         required: true
- *         description: ID da empresa
+ *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Lista de usuários da empresa
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *         description: Lista de funcionários
  */
-router.get("/company/:id", controller.listUsersByCompany);
+router.get("/company/:id", authMiddleware, controller.listUsersByCompany);
 
 /**
  * @swagger
  * /users/{id}:
  *   get:
- *     summary: Busca um usuário pelo ID
+ *     summary: Buscar usuário por ID
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
  *         required: true
- *         description: ID do usuário
+ *         schema: { type: string }
  *     responses:
  *       200:
  *         description: Detalhes do usuário
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/User'
- *       400:
- *         description: Erro na requisição
  */
-router.get("/:id", controller.findUserById);
+router.get("/:id", authMiddleware, controller.findUserById);
 
 /**
  * @swagger
  * /users/{id}:
  *   put:
- *     summary: Atualiza dados do usuário
+ *     summary: Atualizar usuário
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
  *         required: true
- *         description: ID do usuário
+ *         schema: { type: string }
  *     requestBody:
- *       required: true
  *       content:
  *         application/json:
  *           schema:
  *             type: object
  *             properties:
- *               name:
- *                 type: string
- *               email:
- *                 type: string
+ *               name: { type: string }
+ *               email: { type: string }
  *     responses:
  *       200:
- *         description: Usuário atualizado
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/User'
+ *         description: Atualizado com sucesso
  */
-router.put("/:id", controller.updateUser);
+router.put("/:id", authMiddleware, controller.updateUser);
 
 /**
  * @swagger
  * /users/{id}:
  *   delete:
- *     summary: Remove um usuário
+ *     summary: Deletar usuário
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
- *         schema:
- *           type: string
  *         required: true
- *         description: ID do usuário
+ *         schema: { type: string }
  *     responses:
  *       200:
- *         description: Registro excluído com sucesso
- *       500:
- *         description: Erro ao excluir
+ *         description: Usuário removido
  */
-router.delete("/:id", controller.deleteUser);
+router.delete("/:id", authMiddleware, controller.deleteUser);
+
+/**
+ * @swagger
+ * /users/auth/google:
+ *   get:
+ *     summary: Obtém URL para login com Google
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Retorna a URL de redirecionamento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url: { type: string }
+ */
+router.get("/auth/google", controller.getGoogleUrl);
 
 module.exports = router;

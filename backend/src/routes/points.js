@@ -1,6 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/pointsController");
+const authMiddleware = require("../middlewares/authMiddleware");
+
+// Aplica proteção em TODAS as rotas de pontos
+router.use(authMiddleware);
 
 /**
  * @swagger
@@ -8,32 +12,24 @@ const controller = require("../controllers/pointsController");
  *   schemas:
  *     Point:
  *       type: object
- *       required:
- *         - type
- *         - description
  *       properties:
  *         id:
  *           type: string
  *           format: uuid
- *           description: ID único do ponto
  *         user_id:
  *           type: string
  *           format: uuid
- *           description: ID do usuário
  *         company_id:
  *           type: string
  *           format: uuid
- *           description: ID da empresa
  *         type:
  *           type: string
- *           description: Tipo do ponto (entrada/saida/intervalo)
+ *           description: "Tipo do registro (ex: ENTRADA, SAIDA, INTERVALO)"
  *         description:
  *           type: string
- *           description: Descrição ou observação do ponto
  *         created_at:
  *           type: string
  *           format: date-time
- *           description: Data de criação
  *     PointInput:
  *       type: object
  *       required:
@@ -41,24 +37,25 @@ const controller = require("../controllers/pointsController");
  *       properties:
  *         type:
  *           type: string
- *           description: Tipo do registro (ex: Entrada, Saída)
+ *           example: "ENTRADA"
+ *           description: "Tipo do registro (ex: ENTRADA, SAIDA)"
  *         description:
  *           type: string
- *           description: Observação opcional
+ *           example: "Início do expediente"
  */
 
 /**
  * @swagger
  * tags:
  *   name: Points
- *   description: Gerenciamento de registros de ponto
+ *   description: Gerenciamento de registro de pontos
  */
 
 /**
  * @swagger
  * /points:
  *   post:
- *     summary: Registra um novo ponto
+ *     summary: Registrar um novo ponto
  *     tags: [Points]
  *     security:
  *       - bearerAuth: []
@@ -75,10 +72,8 @@ const controller = require("../controllers/pointsController");
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Point'
- *       404:
- *         description: Perfil de usuário não encontrado
- *       500:
- *         description: Erro no servidor
+ *       401:
+ *         description: Token não fornecido ou inválido
  */
 router.post("/", controller.registerPoint);
 
@@ -86,21 +81,19 @@ router.post("/", controller.registerPoint);
  * @swagger
  * /points:
  *   get:
- *     summary: Lista os pontos do usuário logado
+ *     summary: Listar meus pontos (do usuário logado)
  *     tags: [Points]
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *         description: Lista de pontos
+ *         description: Lista de pontos retornada
  *         content:
  *           application/json:
  *             schema:
  *               type: array
  *               items:
  *                 $ref: '#/components/schemas/Point'
- *       500:
- *         description: Erro no servidor
  */
 router.get("/", controller.listMyPoints);
 
@@ -108,26 +101,20 @@ router.get("/", controller.listMyPoints);
  * @swagger
  * /points/company/{id}:
  *   get:
- *     summary: Lista pontos por empresa
+ *     summary: Listar pontos de uma empresa inteira
  *     tags: [Points]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID da empresa
  *     responses:
  *       200:
  *         description: Lista de pontos da empresa
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Point'
- *       500:
- *         description: Erro no servidor
  */
 router.get("/company/:id", controller.listPointsByCompany);
 
@@ -135,24 +122,22 @@ router.get("/company/:id", controller.listPointsByCompany);
  * @swagger
  * /points/{id}:
  *   get:
- *     summary: Busca um ponto pelo ID
+ *     summary: Buscar um ponto específico pelo ID
  *     tags: [Points]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID do ponto
  *     responses:
  *       200:
  *         description: Detalhes do ponto
- *         content:
- *           application/json:
- *             schema:
- *               $ref: '#/components/schemas/Point'
- *       400:
- *         description: Erro na requisição
+ *       404:
+ *         description: Ponto não encontrado
  */
 router.get("/:id", controller.findPointById);
 
@@ -160,14 +145,16 @@ router.get("/:id", controller.findPointById);
  * @swagger
  * /points/{id}:
  *   put:
- *     summary: Atualiza um ponto existente
+ *     summary: Atualizar um ponto (Correção)
  *     tags: [Points]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID do ponto
  *     requestBody:
  *       required: true
@@ -178,14 +165,6 @@ router.get("/:id", controller.findPointById);
  *     responses:
  *       200:
  *         description: Ponto atualizado
- *         content:
- *           application/json:
- *             schema:
- *               type: array
- *               items:
- *                 $ref: '#/components/schemas/Point'
- *       500:
- *         description: Erro no servidor
  */
 router.put("/:id", controller.updatePoint);
 
@@ -193,20 +172,20 @@ router.put("/:id", controller.updatePoint);
  * @swagger
  * /points/{id}:
  *   delete:
- *     summary: Exclui um ponto
+ *     summary: Deletar um ponto
  *     tags: [Points]
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - in: path
  *         name: id
+ *         required: true
  *         schema:
  *           type: string
- *         required: true
  *         description: ID do ponto
  *     responses:
  *       200:
- *         description: Registro excluído com sucesso
- *       500:
- *         description: Erro no servidor
+ *         description: Ponto deletado
  */
 router.delete("/:id", controller.deletePoint);
 
