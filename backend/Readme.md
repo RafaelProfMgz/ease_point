@@ -191,8 +191,3 @@ Para ver o sistema funcionando, siga esta ordem de chamadas:
 3.  **Supabase Auth + Public Table:** Utilizamos a autenticação nativa do Supabase (`auth.users`), mas espelhamos os dados de perfil (nome, empresa, cargo) na tabela `public.users` para facilitar as queries relacionais.
 
 ---
-
-##  Licença
-
-Este projeto está sob a licença ISC.
-```
