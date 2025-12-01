@@ -10,10 +10,17 @@ exports.login = async (req, res) => {
       password,
     });
 
-    if (error)
-      return res.status(401).json({ error: "Email ou senha inválidos" });
+    if (error) {
+      console.error("Erro no Login Supabase:", error.message); 
+      
+      return res.status(401).json({ error: error.message || "Email ou senha inválidos" });
+    }
 
     const userDetails = await UserModel.findById(data.user.id);
+    
+    if (!userDetails) {
+        return res.status(404).json({ error: "Usuário autenticado, mas perfil não encontrado." });
+    }
 
     res.json({
       session: data.session,

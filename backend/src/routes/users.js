@@ -75,6 +75,10 @@ const authMiddleware = require("../middlewares/authMiddleware");
  */
 router.post("/login", controller.login);
 
+
+
+router.post("/logout", authMiddleware, controller.logout);
+
 /**
  * @swagger
  * /users/register:

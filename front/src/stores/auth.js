@@ -1,79 +1,154 @@
 import { defineStore } from 'pinia'
-import { supabase } from '../supabase'
+import axios from 'axios'
 import router from '@/router'
+
+axios.defaults.baseURL = 'http://localhost:3001';
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
-    // Tenta pegar do LocalStorage, mas se der erro no JSON, inicia nulo
-    user: safeGetStorage(),
-    session: null,
+    user: safeGetStorage('ponto_user'),
+    token: localStorage.getItem('ponto_token') || null,
     loading: false
   }),
-  
+
   getters: {
-    isAuthenticated: (state) => !!state.user
+    isAuthenticated: (state) => !!state.token
   },
 
-actions: {
-  async loginWithProvider(providerName) {
-    this.loading = true
-
-    const redirectUrl = window.location.origin 
-
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: providerName,
-      options: { 
-        redirectTo: redirectUrl,
-        skipBrowserRedirect: false 
-      }
-    })
-
-    if (error) {
-      this.loading = false
-      throw error
-    }
-  },
-
-    async logout() {
-      await supabase.auth.signOut()
-      this.user = null
-      this.session = null
-      localStorage.removeItem('ponto_user')
-      router.push('/')
-    },
-
-    async checkSession() {
+  actions: {
+    async login(email, password) {
       this.loading = true
       try {
-        // Pega a sessão atual
-        const { data, error } = await supabase.auth.getSession()
+        const { data } = await axios.post('/users/login', { email, password })
         
-        // Se tiver erro (aquele GET vermelho), ignoramos e deslogamos
-        if (error || !data.session) {
-          throw new Error('Sem sessão')
-        }
-
-        // Se deu certo, atualiza
-        this.session = data.session
-        this.user = data.session.user
-        localStorage.setItem('ponto_user', JSON.stringify(this.user))
-        
-      } catch (e) {
-        // Se der erro, garante que limpa tudo para não travar
-        this.user = null
-        this.session = null
-        localStorage.removeItem('ponto_user')
+        this.setSession(data.session.access_token, data.user)
+        router.push('/dashboard')
+      } catch (error) {
+        console.error('Erro login:', error.response?.data || error)
+        throw error 
       } finally {
         this.loading = false
       }
+    },
+
+    async registerCompany(payload) {
+        this.loading = true
+        try {
+            const { data } = await axios.post('/companies', payload);
+            
+            if (data.user && data.session) {
+                this.setSession(data.session.access_token, data.user);
+            }
+            return data;
+        } catch (error) {
+            throw error;
+        } finally {
+            this.loading = false
+        }
+    },
+
+    async completeGoogleRegistration(payload) {
+        this.loading = true
+        try {
+            const { data } = await axios.post('/companies/google-setup', payload);
+            
+            this.user = data.user;
+            localStorage.setItem('ponto_user', JSON.stringify(data.user));
+            
+            return data;
+        } catch (error) {
+            throw error;
+        } finally {
+            this.loading = false
+        }
+    },
+
+    async loginWithProvider() {
+      this.loading = true
+      try {
+        const { data } = await axios.get('/users/auth/google')
+        window.location.href = data.url
+      } catch (error) {
+        console.error('Erro Google Auth:', error)
+        this.loading = false
+      }
+    },
+
+    async createEmployee(payload) {
+        this.loading = true
+        try {
+            await axios.post('/users/register', payload);
+        } catch (error) {
+            throw error;
+        } finally {
+            this.loading = false;
+        }
+    },
+
+    processOAuthCallback() {
+      const hash = window.location.hash
+      if (!hash) return
+
+      const params = new URLSearchParams(hash.substring(1))
+      const accessToken = params.get('access_token')
+      
+      if (accessToken) {
+        this.token = accessToken
+        localStorage.setItem('ponto_token', accessToken)
+        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
+        
+        window.history.replaceState({}, document.title, window.location.pathname)
+        
+
+        router.push('/dashboard') 
+      }
+    },
+
+    async logout() {
+      this.clearSession()
+      router.push('/')
+    },
+
+    checkSession() {
+      const token = localStorage.getItem('ponto_token')
+      const user = safeGetStorage('ponto_user')
+
+      if (window.location.hash && window.location.hash.includes('access_token')) {
+        this.processOAuthCallback()
+        return
+      }
+
+      if (token) {
+        this.token = token
+        this.user = user
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      } else {
+        this.clearSession()
+      }
+    },
+
+    setSession(token, user) {
+      this.token = token
+      this.user = user
+      localStorage.setItem('ponto_token', token)
+      localStorage.setItem('ponto_user', JSON.stringify(user))
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    },
+
+    clearSession() {
+      this.token = null
+      this.user = null
+      localStorage.removeItem('ponto_token')
+      localStorage.removeItem('ponto_user')
+      delete axios.defaults.headers.common['Authorization']
     }
   }
 })
 
-// Função auxiliar para evitar erro se o localStorage estiver corrompido
-function safeGetStorage() {
+function safeGetStorage(key) {
   try {
-    return JSON.parse(localStorage.getItem('ponto_user'))
+    const item = localStorage.getItem(key)
+    return item ? JSON.parse(item) : null
   } catch {
     return null
   }

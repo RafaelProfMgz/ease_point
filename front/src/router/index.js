@@ -1,9 +1,3 @@
-/**
- * router/index.ts
- * Automatic routes for `./src/pages/*.vue`
- */
-
-// Composables
 import { createRouter, createWebHistory } from 'vue-router'
 import { setupLayouts } from 'virtual:generated-layouts'
 import { routes } from 'vue-router/auto-routes'
@@ -15,17 +9,22 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const localUser = localStorage.getItem('ponto_user')
-  
+  const publicPages = ['/', '/login', '/register']
+  const authRequired = !publicPages.includes(to.path)
 
   if (to.hash && to.hash.includes('access_token')) {
     return next()
   }
 
-  if (to.path !== '/' && !localUser) {
-    next('/')
-  } else if (to.path === '/' && localUser) {
-    next('/dashboard')
-  } else {
+  if (authRequired && !localUser) {
+    return next('/login')
+  } 
+  
+  else if (publicPages.includes(to.path) && localUser) {
+    return next('/dashboard')
+  } 
+  
+  else {
     next()
   }
 })
