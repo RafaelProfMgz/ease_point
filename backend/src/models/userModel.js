@@ -67,6 +67,46 @@ class UserModel {
     if (error) throw new Error(error.message);
     return true;
   }
+
+  static async setResetToken(email, token, expires) {
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        reset_token: token,
+        reset_expires: expires,
+      })
+      .eq("email", email)
+      .select();
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
+
+  static async findByResetToken(token) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("*")
+      .eq("reset_token", token)
+      .gt("reset_expires", new Date().toISOString())
+      .single();
+
+    if (error) return null;
+    return data;
+  }
+
+  static async updatePassword(id, newPassword) {
+    const { data, error } = await supabase
+      .from("users")
+      .update({
+        password: newPassword,
+        reset_token: null,
+        reset_expires: null,
+      })
+      .eq("id", id);
+
+    if (error) throw new Error(error.message);
+    return data;
+  }
 }
 
 module.exports = UserModel;

@@ -5,47 +5,6 @@ const authMiddleware = require("../middlewares/authMiddleware");
 
 /**
  * @swagger
- * components:
- *   schemas:
- *     User:
- *       type: object
- *       properties:
- *         id:
- *           type: string
- *           format: uuid
- *         name:
- *           type: string
- *         email:
- *           type: string
- *         company_id:
- *           type: string
- *           format: uuid
- *         role:
- *           type: string
- *           description: "Papel do usuário (ex: admin, employee)"
- *     LoginInput:
- *       type: object
- *       required: [email, password]
- *       properties:
- *         email: { type: string, example: "admin@empresa.com" }
- *         password: { type: string, example: "123456" }
- *     CreateEmployeeInput:
- *       type: object
- *       required: [name, email, password, company_id]
- *       properties:
- *         name: { type: string }
- *         email: { type: string }
- *         password: { type: string }
- *         company_id: { type: string, format: uuid }
- *     AuthResponse:
- *       type: object
- *       properties:
- *         session: { type: object, description: "Token JWT do Supabase" }
- *         user: { $ref: '#/components/schemas/User' }
- */
-
-/**
- * @swagger
  * tags:
  *   name: Users
  *   description: Gestão de usuários
@@ -75,9 +34,19 @@ const authMiddleware = require("../middlewares/authMiddleware");
  */
 router.post("/login", controller.login);
 
-
-
-router.post("/logout", authMiddleware, controller.logout);
+/**
+ * @swagger
+ * /users/logout:
+ *   post:
+ *     summary: Deslogar
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Deslogado
+ */
+router.post("/logout", controller.logout);
 
 /**
  * @swagger
@@ -98,6 +67,112 @@ router.post("/logout", authMiddleware, controller.logout);
  *         description: "Erro (ex: email já existe)"
  */
 router.post("/register", controller.createEmployee);
+
+/**
+ * @swagger
+ * /users/forgot-password:
+ *   post:
+ *     summary: Solicita nova senha
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email: { type: string }
+ *     responses:
+ *       200:
+ *         description: Email enviado
+ *       400:
+ *         description: "Erro (ex: email não existe)"
+ */
+router.post("/forgot-password", controller.forgotPassword);
+
+/**
+ * @swagger
+ * /users/reset-password:
+ *   post:
+ *     summary: Redefine senha
+ *     tags: [Users]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ResetPasswordInput'
+ *     responses:
+ *       200:
+ *         description: Senha redefinida
+ *       400:
+ *         description: "Erro (ex: token inválido)"
+ */
+router.post("/reset-password", controller.resetPassword);
+
+/**
+ * @swagger
+ * /users/auth/google:
+ *   get:
+ *     summary: Obtém URL para login com Google
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Retorna a URL de redirecionamento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url: { type: string }
+ */
+router.get("/auth/google", authMiddleware, controller.getGoogleUrl);
+
+/**
+ * @swagger
+ * /users/auth/github:
+ *   get:
+ *     summary: Obtém URL para login com github
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Retorna a URL de redirecionamento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url: { type: string }
+ */
+router.get("/auth/github", authMiddleware, controller.getGithubUrl);
+
+/**
+ * @swagger
+ * /users/auth/facebook:
+ *   get:
+ *     summary: Obtém URL para login com facebook
+ *     tags: [Users]
+ *     responses:
+ *       200:
+ *         description: Retorna a URL de redirecionamento
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url: { type: string }
+ */
+router.get("/auth/facebook", authMiddleware, controller.getFacebookUrl);
+
+router.get("/auth/github/callback", authMiddleware, controller.githubCallback);
+
+router.get("/auth/google/callback", authMiddleware, controller.googleCallback);
+
+router.get(
+  "/auth/facebook/callback",
+  authMiddleware,
+  controller.facebookCallback
+);
 
 // --- ROTAS PROTEGIDAS ---
 
@@ -219,23 +294,5 @@ router.put("/:id", authMiddleware, controller.updateUser);
  *         description: Usuário removido
  */
 router.delete("/:id", authMiddleware, controller.deleteUser);
-
-/**
- * @swagger
- * /users/auth/google:
- *   get:
- *     summary: Obtém URL para login com Google
- *     tags: [Users]
- *     responses:
- *       200:
- *         description: Retorna a URL de redirecionamento
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 url: { type: string }
- */
-router.get("/auth/google", controller.getGoogleUrl);
 
 module.exports = router;

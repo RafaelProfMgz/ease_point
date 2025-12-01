@@ -1,155 +1,152 @@
-import { defineStore } from 'pinia'
-import axios from 'axios'
-import router from '@/router'
+import { defineStore } from "pinia";
+import axios from "axios";
+import router from "@/router";
 
-axios.defaults.baseURL = 'http://localhost:3001';
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:3001",
+  headers: { "Content-Type": "application/json" },
+});
 
-export const useAuthStore = defineStore('auth', {
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("ponto_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+const storage = {
+  get: (key) => {
+    try {
+      const item = localStorage.getItem(key);
+      return item ? JSON.parse(item) : null;
+    } catch {
+      return null;
+    }
+  },
+  set: (key, value) => localStorage.setItem(key, JSON.stringify(value)),
+  remove: (key) => localStorage.removeItem(key),
+};
+
+export const useAuthStore = defineStore("auth", {
   state: () => ({
-    user: safeGetStorage('ponto_user'),
-    token: localStorage.getItem('ponto_token') || null,
-    loading: false
+    user: storage.get("ponto_user"),
+    token: localStorage.getItem("ponto_token"),
+    loading: false,
   }),
 
   getters: {
-    isAuthenticated: (state) => !!state.token
+    isAuthenticated: (state) => !!state.token,
+    isAdmin: (state) => state.user?.role === "admin",
   },
 
   actions: {
     async login(email, password) {
-      this.loading = true
+      this.loading = true;
       try {
-        const { data } = await axios.post('/users/login', { email, password })
-        
-        this.setSession(data.session.access_token, data.user)
-        router.push('/dashboard')
+        const { data } = await api.post("/users/login", { email, password });
+
+        const token = data.session?.access_token || data.token;
+
+        this.setSession(token, data.user);
+        router.push("/dashboard");
       } catch (error) {
-        console.error('Erro login:', error.response?.data || error)
-        throw error 
+        throw error;
       } finally {
-        this.loading = false
+        this.loading = false;
+      }
+    },
+
+    async forgotPassword(email) {
+      this.loading = true;
+      try {
+        await api.post("/users/forgot-password", { email });
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async resetPassword(token, password) {
+      this.loading = true;
+      try {
+        await api.post("/users/reset-password", { token, password });
+      } finally {
+        this.loading = false;
       }
     },
 
     async registerCompany(payload) {
-        this.loading = true
-        try {
-            const { data } = await axios.post('/companies', payload);
-            
-            if (data.user && data.session) {
-                this.setSession(data.session.access_token, data.user);
-            }
-            return data;
-        } catch (error) {
-            throw error;
-        } finally {
-            this.loading = false
+      this.loading = true;
+      try {
+        const { data } = await api.post("/companies", payload);
+        if (data.user && data.session) {
+          const token = data.session.access_token;
+          this.setSession(token, data.user);
         }
+        return data;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async loginWithProvider(provider) {
+      this.loading = true;
+      try {
+        const { data } = await api.get(`/users/auth/${provider}`);
+        window.location.href = data.url;
+      } catch (error) {
+        console.error(`Erro Auth ${provider}:`, error);
+        this.loading = false;
+      }
     },
 
     async completeGoogleRegistration(payload) {
-        this.loading = true
-        try {
-            const { data } = await axios.post('/companies/google-setup', payload);
-            
-            this.user = data.user;
-            localStorage.setItem('ponto_user', JSON.stringify(data.user));
-            
-            return data;
-        } catch (error) {
-            throw error;
-        } finally {
-            this.loading = false
-        }
-    },
-
-    async loginWithProvider() {
-      this.loading = true
+      this.loading = true;
       try {
-        const { data } = await axios.get('/users/auth/google')
-        window.location.href = data.url
-      } catch (error) {
-        console.error('Erro Google Auth:', error)
-        this.loading = false
-      }
-    },
-
-    async createEmployee(payload) {
-        this.loading = true
-        try {
-            await axios.post('/users/register', payload);
-        } catch (error) {
-            throw error;
-        } finally {
-            this.loading = false;
+        const { data } = await api.post("/companies/google-setup", payload);
+        if (data.user) {
+          this.user = data.user;
+          storage.set("ponto_user", data.user);
         }
-    },
-
-    processOAuthCallback() {
-      const hash = window.location.hash
-      if (!hash) return
-
-      const params = new URLSearchParams(hash.substring(1))
-      const accessToken = params.get('access_token')
-      
-      if (accessToken) {
-        this.token = accessToken
-        localStorage.setItem('ponto_token', accessToken)
-        axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`
-        
-        window.history.replaceState({}, document.title, window.location.pathname)
-        
-
-        router.push('/dashboard') 
-      }
-    },
-
-    async logout() {
-      this.clearSession()
-      router.push('/')
-    },
-
-    checkSession() {
-      const token = localStorage.getItem('ponto_token')
-      const user = safeGetStorage('ponto_user')
-
-      if (window.location.hash && window.location.hash.includes('access_token')) {
-        this.processOAuthCallback()
-        return
-      }
-
-      if (token) {
-        this.token = token
-        this.user = user
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-      } else {
-        this.clearSession()
+        return data;
+      } finally {
+        this.loading = false;
       }
     },
 
     setSession(token, user) {
-      this.token = token
-      this.user = user
-      localStorage.setItem('ponto_token', token)
-      localStorage.setItem('ponto_user', JSON.stringify(user))
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      this.token = token;
+      this.user = user;
+      localStorage.setItem("ponto_token", token);
+      storage.set("ponto_user", user);
     },
 
-    clearSession() {
-      this.token = null
-      this.user = null
-      localStorage.removeItem('ponto_token')
-      localStorage.removeItem('ponto_user')
-      delete axios.defaults.headers.common['Authorization']
-    }
-  }
-})
+    checkOAuthCallback() {
+      const hash = window.location.hash;
+      if (hash && hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
 
-function safeGetStorage(key) {
-  try {
-    const item = localStorage.getItem(key)
-    return item ? JSON.parse(item) : null
-  } catch {
-    return null
-  }
-}
+        if (accessToken) {
+          localStorage.setItem("ponto_token", accessToken);
+          this.token = accessToken;
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+          router.push("/dashboard");
+        }
+      }
+    },
+
+    logout() {
+      this.token = null;
+      this.user = null;
+      localStorage.removeItem("ponto_token");
+      storage.remove("ponto_user");
+      router.push("/login");
+    },
+  },
+});

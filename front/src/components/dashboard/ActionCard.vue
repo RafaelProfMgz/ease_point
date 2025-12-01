@@ -1,93 +1,139 @@
 <template>
-  <v-card class="text-center pa-6 rounded-lg" elevation="3">
-    <div class="text-h2 font-weight-bold text-grey-darken-3 mb-2">
-      {{ currentTime }}
-    </div>
-    <div class="text-subtitle-1 text-grey mb-6">
-      {{ currentDate }}
-    </div>
-
-    <v-divider class="mb-6"></v-divider>
-
-    <div class="d-flex justify-center flex-wrap gap-4">
-      <v-btn
-        size="x-large"
-        color="green-darken-1"
-        prepend-icon="mdi-login"
-        @click="handleRegister('ENTRADA')"
-        :loading="pointStore.loading"
-        width="160"
-        elevation="4"
+  <v-card class="pa-6 rounded-xl text-center" elevation="4" border>
+    <!-- Relógio -->
+    <div class="py-4">
+      <div class="text-h2 font-weight-bold text-primary mb-1">
+        {{ currentTime }}
+      </div>
+      <div
+        class="text-subtitle-1 text-medium-emphasis font-weight-medium text-uppercase"
       >
-        Entrada
-      </v-btn>
-
-      <v-btn
-        size="x-large"
-        color="orange-darken-2"
-        prepend-icon="mdi-coffee"
-        @click="handleRegister('INTERVALO')"
-        :loading="pointStore.loading"
-        width="160"
-        elevation="4"
-      >
-        Intervalo
-      </v-btn>
-
-      <v-btn
-        size="x-large"
-        color="red-darken-1"
-        prepend-icon="mdi-logout"
-        @click="handleRegister('SAIDA')"
-        :loading="pointStore.loading"
-        width="160"
-        elevation="4"
-      >
-        Saída
-      </v-btn>
+        {{ currentDate }}
+      </div>
     </div>
 
-    <v-snackbar v-model="snackbar" :color="snackColor" location="top">
-      {{ snackText }}
+    <v-divider class="my-6"></v-divider>
+
+    <!-- Botões de Ação Responsivos -->
+    <v-row dense>
+      <v-col cols="12" sm="4">
+        <v-btn
+          block
+          size="x-large"
+          color="success"
+          variant="flat"
+          prepend-icon="mdi-login"
+          height="56"
+          @click="handleRegister('ENTRADA')"
+          :loading="loading === 'ENTRADA'"
+          :disabled="loading !== ''"
+        >
+          Entrada
+        </v-btn>
+      </v-col>
+
+      <v-col cols="12" sm="4">
+        <v-btn
+          block
+          size="x-large"
+          color="warning"
+          variant="flat"
+          prepend-icon="mdi-coffee"
+          height="56"
+          @click="handleRegister('INTERVALO')"
+          :loading="loading === 'INTERVALO'"
+          :disabled="loading !== ''"
+        >
+          Intervalo
+        </v-btn>
+      </v-col>
+
+      <v-col cols="12" sm="4">
+        <v-btn
+          block
+          size="x-large"
+          color="error"
+          variant="flat"
+          prepend-icon="mdi-logout"
+          height="56"
+          @click="handleRegister('SAIDA')"
+          :loading="loading === 'SAIDA'"
+          :disabled="loading !== ''"
+        >
+          Saída
+        </v-btn>
+      </v-col>
+    </v-row>
+
+    <!-- Snackbar Local -->
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      location="top"
+      timeout="3000"
+    >
+      <div class="d-flex align-center">
+        <v-icon :icon="snackbar.icon" start></v-icon>
+        {{ snackbar.text }}
+      </div>
     </v-snackbar>
   </v-card>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { usePointStore } from '@/stores/points'
+import { ref, onMounted, onUnmounted } from "vue";
+import { usePointStore } from "@/stores/points";
 
-const pointStore = usePointStore()
-const currentTime = ref('')
-const currentDate = ref('')
-const snackbar = ref(false)
-const snackText = ref('')
-const snackColor = ref('success')
+const pointStore = usePointStore();
+const currentTime = ref("");
+const currentDate = ref("");
+const loading = ref("");
+
+const snackbar = ref({
+  show: false,
+  text: "",
+  color: "success",
+  icon: "mdi-check-circle",
+});
 
 const updateTime = () => {
-  const now = new Date()
-  currentTime.value = now.toLocaleTimeString('pt-BR')
-  currentDate.value = now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
-}
+  const now = new Date();
+  currentTime.value = now.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+  currentDate.value = now.toLocaleDateString("pt-BR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+};
 
-let timer = setInterval(updateTime, 1000)
-onUnmounted(() => clearInterval(timer))
-onMounted(updateTime)
+let timer = setInterval(updateTime, 1000);
+onMounted(updateTime);
+onUnmounted(() => clearInterval(timer));
 
 const handleRegister = async (type) => {
+  loading.value = type;
   try {
-    await pointStore.registerPoint(type)
-    snackText.value = `Registro de ${type} realizado!`
-    snackColor.value = 'success'
-    snackbar.value = true
+    await pointStore.registerPoint(type);
+    showSnack(
+      `Registro de ${type} realizado com sucesso!`,
+      "success",
+      "mdi-check-circle"
+    );
   } catch (e) {
-    snackText.value = 'Erro ao registrar ponto. Tente novamente.'
-    snackColor.value = 'error'
-    snackbar.value = true
+    showSnack(
+      e.response?.data?.error || "Erro ao registrar ponto.",
+      "error",
+      "mdi-alert-circle"
+    );
+  } finally {
+    loading.value = "";
   }
-}
-</script>
+};
 
-<style scoped>
-.gap-4 { gap: 16px; }
-</style>
+const showSnack = (text, color, icon) => {
+  snackbar.value = { show: true, text, color, icon };
+};
+</script>

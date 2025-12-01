@@ -1,5 +1,15 @@
 const UserModel = require("../models/userModel");
 const AuthModel = require("../models/authModel");
+const crypto = require("crypto");
+const nodemailer = require("nodemailer");
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
 
 exports.login = async (req, res) => {
   try {
@@ -11,15 +21,19 @@ exports.login = async (req, res) => {
     });
 
     if (error) {
-      console.error("Erro no Login Supabase:", error.message); 
-      
-      return res.status(401).json({ error: error.message || "Email ou senha inválidos" });
+      console.error("Erro no Login Supabase:", error.message);
+
+      return res
+        .status(401)
+        .json({ error: error.message || "Email ou senha inválidos" });
     }
 
     const userDetails = await UserModel.findById(data.user.id);
-    
+
     if (!userDetails) {
-        return res.status(404).json({ error: "Usuário autenticado, mas perfil não encontrado." });
+      return res
+        .status(404)
+        .json({ error: "Usuário autenticado, mas perfil não encontrado." });
     }
 
     res.json({
@@ -144,5 +158,50 @@ exports.getGithubUrl = async (req, res) => {
     res.json({ url: data.url });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const user = await UserModel.findByResetToken(token);
+
+    if (!user) {
+      return res.status(400).json({ error: "Token inválido ou expirado" });
+    }
+
+    await UserModel.updatePassword(user.id, password);
+
+    return res.json({ message: "Senha alterada com sucesso!" });
+  } catch (err) {
+    return res.status(400).json({ error: "Erro ao redefinir senha" });
+  }
+};
+
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const token = crypto.randomBytes(20).toString("hex");
+
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+
+    await UserModel.setResetToken(email, token, now);
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+    await transporter.sendMail({
+      to: email,
+      subject: "Recuperação de Senha - EasyPoint",
+      html: `<p>Você solicitou a troca de senha.</p>
+             <p>Clique no link para redefinir: <a href="${resetLink}">Nova Senha</a></p>`,
+    });
+
+    return res.json({ message: "E-mail enviado com sucesso!" });
+  } catch (err) {
+    console.error(err);
+    return res.status(400).json({ error: "Erro ao processar solicitação" });
   }
 };

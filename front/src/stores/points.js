@@ -1,69 +1,98 @@
-import { defineStore } from 'pinia'
-import axios from 'axios'
-import { useSnackbarStore } from '@/stores/snackbar' 
+import { defineStore } from "pinia";
+import api from "@/services/api";
 
-export const usePointStore = defineStore('points', {
+export const usePointStore = defineStore("points", {
   state: () => ({
-    history: [],
+    points: [],
     loading: false,
-    summary: {
-      todayCount: 0,
-      lastRegister: null
-    }
   }),
 
+  getters: {
+    history: (state) => {
+      return [...state.points].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+    },
+
+    lastPoint: (state) => {
+      const sorted = [...state.points].sort(
+        (a, b) => new Date(b.created_at) - new Date(a.created_at)
+      );
+      return sorted[0] || null;
+    },
+
+    todaySummary: (state) => {
+      const today = new Date().toLocaleDateString();
+      const todayPoints = state.points.filter(
+        (p) => new Date(p.created_at).toLocaleDateString() === today
+      );
+
+      return {
+        count: todayPoints.length,
+        items: todayPoints,
+      };
+    },
+  },
+
   actions: {
-    async fetchHistory() {
-      this.loading = true
-       const notify = useSnackbarStore() 
-
+    async fetchMyPoints() {
+      this.loading = true;
       try {
-        const { data } = await axios.get('/points')
-        this.history = data
-        this.calculateSummary()
+        const { data } = await api.get("/points");
+        this.points = data;
       } catch (error) {
-        console.error('Erro ao buscar histórico', error)
-        notify.showSnackbar('Não foi possível carregar o histórico.', 'warning')
+        throw error;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    async registerPoint(type) {
-      this.loading = true
-      const notify = useSnackbarStore()
-
+    async fetchCompanyPoints(companyId) {
+      this.loading = true;
       try {
-        await axios.post('/points', {
-          type: type,
-          description: 'Registro via Dashboard Web'
-        })
-        
-        await this.fetchHistory()
-        
-        notify.showSnackbar(`Ponto de ${type} registrado com sucesso!`, 'success')
-        
-        return true
+        const { data } = await api.get(`/points/company/${companyId}`);
+        this.points = data;
       } catch (error) {
-        const msg = error.response?.data?.error || 'Erro ao registrar ponto. Tente novamente.'
-        notify.showSnackbar(msg, 'error')
-        
-        throw error
+        throw error;
       } finally {
-        this.loading = false
+        this.loading = false;
       }
     },
 
-    calculateSummary() {
-      const today = new Date().toLocaleDateString()
-      
-      this.summary.todayCount = this.history.filter(p => 
-        new Date(p.created_at).toLocaleDateString() === today
-      ).length
-
-      if (this.history.length > 0) {
-        this.summary.lastRegister = this.history[0]
+    async registerPoint(type, description = "Registro via Web") {
+      this.loading = true;
+      try {
+        await api.post("/points", { type, description });
+        await this.fetchMyPoints();
+      } catch (error) {
+        throw error;
+      } finally {
+        this.loading = false;
       }
-    }
-  }
-})
+    },
+
+    async updatePoint(id, payload) {
+      this.loading = true;
+      try {
+        await api.put(`/points/${id}`, payload);
+        await this.fetchMyPoints();
+      } catch (error) {
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+
+    async deletePoint(id) {
+      this.loading = true;
+      try {
+        await api.delete(`/points/${id}`);
+        this.points = this.points.filter((p) => p.id !== id);
+      } catch (error) {
+        throw error;
+      } finally {
+        this.loading = false;
+      }
+    },
+  },
+});

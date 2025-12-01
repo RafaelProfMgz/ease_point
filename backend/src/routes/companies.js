@@ -142,12 +142,6 @@ router.delete("/:id", authMiddleware, controller.deleteCompany);
  *       201:
  *         description: Cadastro finalizado e vinculado
  */
-router.post(
-  "/google-setup",
-  authMiddleware,
-  controller.completeGoogleRegistration
-);
-
-// ... outras rotas
+router.post("/google-setup", controller.completeGoogleRegistration);
 
 module.exports = router;
