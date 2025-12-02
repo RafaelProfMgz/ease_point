@@ -11,6 +11,7 @@ export {}
 /* prettier-ignore */
 declare module 'vue' {
   export interface GlobalComponents {
+    EditPointDialog: typeof import('./src/components/EditPointDialog.vue')['default']
     GlobalSnackbar: typeof import('./src/components/GlobalSnackbar.vue')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']

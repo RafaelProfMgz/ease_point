@@ -19,11 +19,15 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    '/company': RouteRecordInfo<'/company', '/company', Record<never, never>, Record<never, never>>,
     '/dashboard': RouteRecordInfo<'/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
     '/docs': RouteRecordInfo<'/docs', '/docs', Record<never, never>, Record<never, never>>,
-    '/forgotPassword': RouteRecordInfo<'/forgotPassword', '/forgotPassword', Record<never, never>, Record<never, never>>,
+    '/forgot-password': RouteRecordInfo<'/forgot-password', '/forgot-password', Record<never, never>, Record<never, never>>,
+    '/history': RouteRecordInfo<'/history', '/history', Record<never, never>, Record<never, never>>,
     '/login': RouteRecordInfo<'/login', '/login', Record<never, never>, Record<never, never>>,
     '/register': RouteRecordInfo<'/register', '/register', Record<never, never>, Record<never, never>>,
+    '/update-password': RouteRecordInfo<'/update-password', '/update-password', Record<never, never>, Record<never, never>>,
+    '/users': RouteRecordInfo<'/users', '/users', Record<never, never>, Record<never, never>>,
   }
 
   /**
@@ -41,6 +45,10 @@ declare module 'vue-router/auto-routes' {
       routes: '/'
       views: never
     }
+    'src/pages/company.vue': {
+      routes: '/company'
+      views: never
+    }
     'src/pages/dashboard.vue': {
       routes: '/dashboard'
       views: never
@@ -49,8 +57,12 @@ declare module 'vue-router/auto-routes' {
       routes: '/docs'
       views: never
     }
-    'src/pages/forgotPassword.vue': {
-      routes: '/forgotPassword'
+    'src/pages/forgot-password.vue': {
+      routes: '/forgot-password'
+      views: never
+    }
+    'src/pages/history.vue': {
+      routes: '/history'
       views: never
     }
     'src/pages/login.vue': {
@@ -59,6 +71,14 @@ declare module 'vue-router/auto-routes' {
     }
     'src/pages/register.vue': {
       routes: '/register'
+      views: never
+    }
+    'src/pages/update-password.vue': {
+      routes: '/update-password'
+      views: never
+    }
+    'src/pages/users.vue': {
+      routes: '/users'
       views: never
     }
   }

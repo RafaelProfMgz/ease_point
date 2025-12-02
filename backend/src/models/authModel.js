@@ -1,13 +1,16 @@
-const supabase = require("../config/supabase");
+const supabaseAdmin = require("../config/supabaseAdmin");
 
 class AuthModel {
   static async login({ email, password }) {
-    const result = await supabase.auth.signInWithPassword({ email, password });
+    const result = await supabaseAdmin.auth.signInWithPassword({
+      email,
+      password,
+    });
     return result;
   }
 
   static async signUp({ email, password }) {
-    const result = await supabase.auth.signUp({
+    const result = await supabaseAdmin.auth.signUp({
       email,
       password,
     });
@@ -16,7 +19,7 @@ class AuthModel {
   }
 
   static async getOAuthUrl(provider) {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabaseAdmin.auth.signInWithOAuth({
       provider: provider,
       options: {
         redirectTo: "http://localhost:3000/dashboard",
@@ -28,7 +31,7 @@ class AuthModel {
   }
 
   static async logout() {
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabaseAdmin.auth.signOut();
     if (error) throw new Error(error.message);
     return true;
   }

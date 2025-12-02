@@ -1,8 +1,8 @@
-const supabase = require("../config/supabase");
+const supabaseAdmin = require("../config/supabaseAdmin");
 
 class CompanyModel {
   static async create({ name, plan }) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("companies")
       .insert([{ name, plan }])
       .select()
@@ -13,7 +13,7 @@ class CompanyModel {
   }
 
   static async findById(id) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("companies")
       .select("*")
       .eq("id", id)
@@ -24,7 +24,7 @@ class CompanyModel {
   }
 
   static async update(id, { name, plan }) {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("companies")
       .update({ name, plan })
       .eq("id", id)
@@ -35,7 +35,10 @@ class CompanyModel {
   }
 
   static async delete(id) {
-    const { error } = await supabase.from("companies").delete().eq("id", id);
+    const { error } = await supabaseAdmin
+      .from("companies")
+      .delete()
+      .eq("id", id);
 
     if (error) throw new Error(error.message);
     return true;
