@@ -19,7 +19,7 @@ class AuthModel {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: "http://localhost:3000/docs",
+        redirectTo: "http://localhost:3000/dashboard",
       },
     });
 
