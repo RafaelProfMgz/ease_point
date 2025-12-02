@@ -76,7 +76,8 @@ exports.updatePoint = async (req, res) => {
 exports.deletePoint = async (req, res) => {
   try {
     const { id } = req.params;
-    await PointsModel.delete(id);
+    const userId = req.user.id;
+    await PointsModel.delete(id, userId);
     res.json({ message: "Registro excluído com sucesso." });
   } catch (err) {
     res.status(500).json({ error: err.message });

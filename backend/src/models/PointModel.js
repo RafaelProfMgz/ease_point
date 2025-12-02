@@ -55,12 +55,16 @@ class PointsModel {
     return data;
   }
 
-  static async delete(id) {
-    const { error } = await supabase.from("pointers").delete().eq("id", id);
+static async delete(id, userId) { 
+    const { error } = await supabase
+      .from("pointers")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", userId); 
 
     if (error) throw new Error(error.message);
     return true;
-  }
+}
 }
 
 module.exports = PointsModel;

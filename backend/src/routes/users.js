@@ -126,7 +126,7 @@ router.post("/reset-password", controller.resetPassword);
  *               properties:
  *                 url: { type: string }
  */
-router.get("/auth/google", authMiddleware, controller.getGoogleUrl);
+router.get("/auth/google", controller.getGoogleUrl);
 
 /**
  * @swagger
@@ -144,7 +144,7 @@ router.get("/auth/google", authMiddleware, controller.getGoogleUrl);
  *               properties:
  *                 url: { type: string }
  */
-router.get("/auth/github", authMiddleware, controller.getGithubUrl);
+router.get("/auth/github",  controller.getGithubUrl);
 
 /**
  * @swagger

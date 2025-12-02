@@ -1,60 +1,107 @@
 <template>
-  <v-container class="fill-height bg-grey-lighten-4" fluid>
-    <v-row justify="center">
-      <v-col cols="12" md="6" lg="5">
-        <v-card class="pa-6" elevation="8" rounded="lg">
-          <div class="text-center mb-6">
-            <h2 class="text-h5 font-weight-bold">Comece Grátis</h2>
-            <div class="text-subtitle-2 text-grey">Crie sua empresa e gerencie seus pontos</div>
+  <v-container class="fill-height landing-bg" fluid>
+    <!-- Formas de fundo (Blobs) -->
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
+    <div class="bg-blob blob-3"></div>
+
+    <v-row justify="center" align="center" class="z-index-1 w-100 my-4">
+      <v-col cols="12" md="8" lg="6" xl="5">
+        <v-card class="pa-8 glass-card" elevation="0" rounded="xl">
+          
+          <div class="text-center mb-8">
+            <v-avatar color="rgba(255,255,255,0.1)" size="64" class="mb-4 border-highlight">
+              <v-icon icon="mdi-rocket-launch" size="32" class="text-gradient-icon"></v-icon>
+            </v-avatar>
+            <h2 class="text-h4 font-weight-bold text-white mb-2">Comece Grátis</h2>
+            <div class="text-subtitle-1 text-grey-lighten-1">
+              Configure sua empresa em menos de 1 minuto
+            </div>
           </div>
 
           <v-form @submit.prevent="handleRegister">
-            <v-row>
-              <v-col cols="12">
-                <p class="text-caption font-weight-bold mb-1 text-uppercase text-grey-darken-2">Dados da Empresa</p>
+            <!-- Seção: Empresa -->
+            <div class="d-flex align-center mb-4">
+              <v-icon icon="mdi-domain" color="primary-lighten-1" size="small" class="mr-2"></v-icon>
+              <span class="text-caption font-weight-bold text-uppercase text-white letter-spacing-1">
+                Dados da Empresa
+              </span>
+            </div>
+
+            <v-row dense>
+              <v-col cols="12" sm="8">
                 <v-text-field
                   v-model="form.companyName"
                   label="Nome da Empresa"
+                  placeholder="Ex: Tech Solutions Ltda"
                   variant="outlined"
-                  density="compact"
-                  color="primary"
+                  bg-color="rgba(0,0,0,0.2)"
+                  color="primary-lighten-1"
+                  base-color="grey-lighten-2"
+                  rounded="lg"
+                  density="comfortable"
+                  class="text-white"
                 ></v-text-field>
               </v-col>
 
-              <v-col cols="12">
+              <v-col cols="12" sm="4">
                 <v-select
                   v-model="form.plan"
-                  :items="['bronze', 'prata', 'ouro']"
-                  label="Escolha um Plano"
+                  :items="planOptions"
+                  item-title="title"
+                  item-value="value"
+                  label="Plano"
                   variant="outlined"
-                  density="compact"
-                  color="primary"
+                  bg-color="rgba(0,0,0,0.2)"
+                  color="primary-lighten-1"
+                  base-color="grey-lighten-2"
+                  rounded="lg"
+                  density="comfortable"
+                  class="text-white"
+                  menu-icon="mdi-chevron-down"
                 ></v-select>
               </v-col>
             </v-row>
 
-            <v-divider class="my-4"></v-divider>
+            <v-divider class="my-6 border-opacity-20" color="white"></v-divider>
 
-            <v-row>
+            <!-- Seção: Administrador -->
+            <div class="d-flex align-center mb-4">
+              <v-icon icon="mdi-account-circle-outline" color="primary-lighten-1" size="small" class="mr-2"></v-icon>
+              <span class="text-caption font-weight-bold text-uppercase text-white letter-spacing-1">
+                Dados do Administrador
+              </span>
+            </div>
+
+            <v-row dense>
               <v-col cols="12">
-                <p class="text-caption font-weight-bold mb-1 text-uppercase text-grey-darken-2">Dados do Administrador</p>
                 <v-text-field
                   v-model="form.adminName"
-                  label="Seu Nome Completo"
+                  label="Nome Completo"
+                  prepend-inner-icon="mdi-account-outline"
                   variant="outlined"
-                  density="compact"
-                  color="primary"
+                  bg-color="rgba(0,0,0,0.2)"
+                  color="primary-lighten-1"
+                  base-color="grey-lighten-2"
+                  rounded="lg"
+                  density="comfortable"
+                  class="text-white"
                 ></v-text-field>
               </v-col>
 
               <v-col cols="12">
                 <v-text-field
                   v-model="form.email"
-                  label="Seu Email de Login"
+                  label="Email de Login"
                   type="email"
+                  prepend-inner-icon="mdi-email-outline"
                   variant="outlined"
-                  density="compact"
-                  color="primary"
+                  bg-color="rgba(0,0,0,0.2)"
+                  color="primary-lighten-1"
+                  base-color="grey-lighten-2"
+                  rounded="lg"
+                  density="comfortable"
+                  class="text-white"
                 ></v-text-field>
               </v-col>
 
@@ -62,38 +109,53 @@
                 <v-text-field
                   v-model="form.password"
                   label="Crie uma Senha"
-                  type="password"
+                  :type="showPass ? 'text' : 'password'"
+                  prepend-inner-icon="mdi-lock-outline"
+                  :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+                  @click:append-inner="showPass = !showPass"
                   variant="outlined"
-                  density="compact"
-                  color="primary"
+                  bg-color="rgba(0,0,0,0.2)"
+                  color="primary-lighten-1"
+                  base-color="grey-lighten-2"
+                  rounded="lg"
+                  density="comfortable"
                   hint="Mínimo 6 caracteres"
+                  persistent-hint
+                  class="text-white"
                 ></v-text-field>
               </v-col>
             </v-row>
 
             <v-btn
               block
-              color="primary"
-              size="large"
+              size="x-large"
               type="submit"
-              class="mt-6"
+              class="mt-8 btn-gradient text-white text-none font-weight-bold"
+              rounded="xl"
+              elevation="10"
               :loading="loading"
             >
               Criar Conta e Acessar
             </v-btn>
           </v-form>
 
-          <div class="text-center mt-4">
-            <v-btn variant="text" size="small" to="/login" color="grey-darken-2">
-              Já tenho uma conta
-            </v-btn>
+          <div class="text-center mt-6">
+            <p class="text-body-2 text-grey-lighten-1">
+              Já tem uma conta?
+              <router-link to="/login" class="text-gradient-link font-weight-bold text-decoration-none ml-1">
+                Fazer Login
+              </router-link>
+            </p>
           </div>
         </v-card>
       </v-col>
     </v-row>
     
-    <v-snackbar v-model="snackbar" :color="snackbarColor">
-      {{ snackbarText }}
+    <v-snackbar v-model="snackbar" :color="snackbarColor" location="top" rounded="lg">
+      <div class="d-flex align-center">
+        <v-icon :icon="snackbarColor === 'success' ? 'mdi-check-circle' : 'mdi-alert-circle'" start class="mr-2"></v-icon>
+        <span class="font-weight-medium">{{ snackbarText }}</span>
+      </div>
     </v-snackbar>
   </v-container>
 </template>
@@ -106,10 +168,18 @@ import { useRouter } from 'vue-router';
 const auth = useAuthStore();
 const router = useRouter();
 const loading = ref(false);
+const showPass = ref(false);
 
 const snackbar = ref(false);
 const snackbarText = ref('');
 const snackbarColor = ref('success');
+
+// Opções de planos formatadas
+const planOptions = [
+  { title: 'Bronze', value: 'bronze' },
+  { title: 'Prata', value: 'prata' },
+  { title: 'Ouro', value: 'ouro' }
+];
 
 const form = reactive({
   companyName: '',
@@ -146,3 +216,101 @@ const showSnackbar = (text, color) => {
   snackbar.value = true;
 };
 </script>
+
+<style scoped>
+/* Fundo idêntico à Landing Page e Login */
+.landing-bg {
+  background-color: #0f172a;
+  background-image: radial-gradient(
+      at 0% 0%,
+      hsla(253, 16%, 7%, 1) 0,
+      transparent 50%
+    ),
+    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+  position: relative;
+  overflow-y: auto; /* Permite scroll se a tela for pequena */
+}
+
+/* Card com efeito Glassmorphism */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Botão Gradiente */
+.btn-gradient {
+  background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
+  transition: opacity 0.3s ease, transform 0.2s;
+}
+.btn-gradient:hover {
+  opacity: 0.9;
+  transform: translateY(-2px);
+}
+
+/* Textos e Ícones Especiais */
+.text-gradient-link, .text-gradient-icon {
+  background: linear-gradient(to right, #6366f1, #ec4899);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent; /* Fallback deve ser tratado no icon se necessário */
+}
+.text-gradient-icon {
+  color: #a855f7 !important; /* Fallback */
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
+.border-highlight {
+    border: 1px solid rgba(168, 85, 247, 0.3);
+}
+
+.border-opacity-20 {
+    opacity: 0.2;
+}
+
+/* Blobs de fundo */
+.bg-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: #4f46e5;
+  top: -100px;
+  left: -100px;
+}
+
+.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: #ec4899;
+  bottom: -50px;
+  right: -50px;
+}
+
+.blob-3 {
+    width: 250px;
+    height: 250px;
+    background: #06b6d4; /* Cyan para variar um pouco no cadastro */
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    opacity: 0.2;
+}
+
+.z-index-1 {
+  z-index: 1;
+  position: relative;
+}
+</style>

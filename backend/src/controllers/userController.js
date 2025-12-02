@@ -161,6 +161,39 @@ exports.getGithubUrl = async (req, res) => {
   }
 };
 
+
+exports.getFacebookUrl = async (req, res) => {
+  try {
+    res.status(501).json({ message: "Login com Facebook ainda não implementado" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.githubCallback = async (req, res) => {
+  try {
+    res.json({ message: "Github callback recebido" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.googleCallback = async (req, res) => {
+  try {
+    res.json({ message: "Google callback recebido" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+exports.facebookCallback = async (req, res) => {
+  try {
+    res.json({ message: "Facebook callback recebido" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 exports.resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;

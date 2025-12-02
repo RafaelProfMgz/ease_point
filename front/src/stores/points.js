@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import api from "@/services/api";
+import { useSnackbarStore } from "@/stores/snackbar";
 
 export const usePointStore = defineStore("points", {
   state: () => ({
@@ -60,11 +61,17 @@ export const usePointStore = defineStore("points", {
     },
 
     async registerPoint(type, description = "Registro via Web") {
+      const snackbar = useSnackbarStore();
       this.loading = true;
+      
       try {
         await api.post("/points", { type, description });
         await this.fetchMyPoints();
+        
+        snackbar.showSnackbar(`Ponto de ${type} registrado com sucesso!`, 'success');
       } catch (error) {
+        const msg = error.response?.data?.error || 'Falha ao registrar ponto';
+        snackbar.showSnackbar(msg, 'error');
         throw error;
       } finally {
         this.loading = false;
@@ -72,11 +79,17 @@ export const usePointStore = defineStore("points", {
     },
 
     async updatePoint(id, payload) {
+      const snackbar = useSnackbarStore();
       this.loading = true;
+      
       try {
         await api.put(`/points/${id}`, payload);
         await this.fetchMyPoints();
+        
+        snackbar.showSnackbar('Registro atualizado com sucesso!', 'success');
       } catch (error) {
+        const msg = error.response?.data?.error || 'Erro ao atualizar registro';
+        snackbar.showSnackbar(msg, 'error');
         throw error;
       } finally {
         this.loading = false;
@@ -84,11 +97,17 @@ export const usePointStore = defineStore("points", {
     },
 
     async deletePoint(id) {
+      const snackbar = useSnackbarStore(); 
       this.loading = true;
+      
       try {
         await api.delete(`/points/${id}`);
         this.points = this.points.filter((p) => p.id !== id);
+        
+        snackbar.showSnackbar('Registro removido com sucesso!', 'success');
       } catch (error) {
+        const msg = error.response?.data?.error || 'Erro ao excluir registro';
+        snackbar.showSnackbar(msg, 'error');
         throw error;
       } finally {
         this.loading = false;

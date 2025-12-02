@@ -14,6 +14,7 @@ declare module 'vue' {
     ActionCard: typeof import('./src/components/dashboard/ActionCard.vue')['default']
     AppFooter: typeof import('./src/components/AppFooter.vue')['default']
     DashBoard: typeof import('./src/components/DashBoard.vue')['default']
+    GlobalSnackbar: typeof import('./src/components/GlobalSnackbar.vue')['default']
     Header: typeof import('./src/components/dashboard/Header.vue')['default']
     HistoryTable: typeof import('./src/components/dashboard/HistoryTable.vue')['default']
     Home: typeof import('./src/components/Home.vue')['default']

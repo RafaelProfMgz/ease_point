@@ -9,7 +9,7 @@ const router = createRouter({
 
 router.beforeEach(async (to, from, next) => {
   const localUser = localStorage.getItem("ponto_user");
-  const publicPages = ["/", "/login", "/register"];
+  const publicPages = ["/", "/login", "/register", "/forgotPassword", "/resetPassword"];
   const authRequired = !publicPages.includes(to.path);
 
   if (to.hash && to.hash.includes("access_token")) {

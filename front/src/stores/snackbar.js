@@ -4,9 +4,19 @@ export const useSnackbarStore = defineStore('snackbar', {
   state: () => ({
     show: false,
     text: '',
-    color: 'success',
+    color: 'success', // success, error, warning, info
     timeout: 4000
   }),
+  getters: {
+    icon: (state) => {
+      switch (state.color) {
+        case 'error': return 'mdi-alert-circle';
+        case 'warning': return 'mdi-alert';
+        case 'info': return 'mdi-information';
+        default: return 'mdi-check-circle';
+      }
+    }
+  },
   actions: {
     showSnackbar(text, color = 'success') {
       this.text = text
