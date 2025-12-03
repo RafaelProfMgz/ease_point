@@ -5,7 +5,7 @@ class ProviderModel {
     const { data, error } = await supabaseAdmin.auth.signInWithOAuth({
       provider: provider,
       options: {
-        redirectTo: "http://localhost:3000/callback",
+        redirectTo: "https://ease-point.vercel.app/callback",
       },
     });
 
