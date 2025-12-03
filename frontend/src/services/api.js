@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://ease-point.onrender.com/",
+  baseURL: "https://ease-point.onrender.com",
 });
 
 api.interceptors.request.use(
