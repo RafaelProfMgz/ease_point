@@ -19,7 +19,9 @@ declare module 'vue-router/auto-routes' {
    */
   export interface RouteNamedMap {
     '/': RouteRecordInfo<'/', '/', Record<never, never>, Record<never, never>>,
+    '/callback': RouteRecordInfo<'/callback', '/callback', Record<never, never>, Record<never, never>>,
     '/company': RouteRecordInfo<'/company', '/company', Record<never, never>, Record<never, never>>,
+    '/complete-signup': RouteRecordInfo<'/complete-signup', '/complete-signup', Record<never, never>, Record<never, never>>,
     '/dashboard': RouteRecordInfo<'/dashboard', '/dashboard', Record<never, never>, Record<never, never>>,
     '/docs': RouteRecordInfo<'/docs', '/docs', Record<never, never>, Record<never, never>>,
     '/forgot-password': RouteRecordInfo<'/forgot-password', '/forgot-password', Record<never, never>, Record<never, never>>,
@@ -45,8 +47,16 @@ declare module 'vue-router/auto-routes' {
       routes: '/'
       views: never
     }
+    'src/pages/callback.vue': {
+      routes: '/callback'
+      views: never
+    }
     'src/pages/company.vue': {
       routes: '/company'
+      views: never
+    }
+    'src/pages/complete-signup.vue': {
+      routes: '/complete-signup'
       views: never
     }
     'src/pages/dashboard.vue': {

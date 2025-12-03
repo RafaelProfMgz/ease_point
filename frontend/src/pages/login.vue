@@ -10,16 +10,20 @@ meta:
 
     <v-row justify="center" align="center" class="z-index-1 w-100">
       <v-col cols="12" sm="8" md="5" lg="4">
-        
         <v-card class="pa-8 glass-card" elevation="0" rounded="xl">
           <div class="text-center mb-8">
-            <v-avatar color="rgba(255,255,255,0.1)" size="80" class="mb-4 border-highlight">
-              <v-icon icon="mdi-account-clock" size="40" class="text-gradient-icon"></v-icon>
+            <v-avatar
+              color="rgba(255,255,255,0.1)"
+              size="80"
+              class="mb-4 border-highlight"
+            >
+              <v-icon
+                icon="mdi-account-clock"
+                size="40"
+                class="text-gradient-icon"
+              ></v-icon>
             </v-avatar>
-            
-            <h2 class="text-h4 font-weight-bold text-white mb-2">
-              Bem-vindo
-            </h2>
+            <h2 class="text-h4 font-weight-bold text-white mb-2">Bem-vindo</h2>
             <p class="text-body-1 text-grey-lighten-1">
               Faça login para gerenciar seu ponto
             </p>
@@ -57,8 +61,9 @@ meta:
             ></v-text-field>
 
             <div class="d-flex justify-end mb-6">
-              <router-link 
-                to="/forgotPassword" 
+              <!-- CORREÇÃO DA ROTA AQUI -->
+              <router-link
+                to="/forgot-password"
                 class="text-caption text-grey-lighten-1 text-decoration-none hover-highlight"
               >
                 Esqueceu a senha?
@@ -79,28 +84,33 @@ meta:
           </v-form>
 
           <div class="d-flex align-center text-center justify-center my-6">
-            <span class="text-caption px-10 text-grey-lighten-2 text-uppercase">ou entrar com</span>
+            <span class="text-caption px-10 text-grey-lighten-2 text-uppercase"
+              >ou entrar com</span
+            >
           </div>
 
           <v-row dense class="mb-6">
-              <v-btn
-                block
-                variant="outlined"
-                color="white"
-                prepend-icon="mdi-google"
-                @click="auth.loginWithProvider('google')"
-                :loading="auth.loading"
-                class="text-none glass-btn"
-                rounded="lg"
-              >
-                Google
-              </v-btn>
+            <v-btn
+              block
+              variant="outlined"
+              color="white"
+              prepend-icon="mdi-google"
+              @click="auth.loginWithProvider('google')"
+              :loading="auth.loading"
+              class="text-none glass-btn"
+              rounded="lg"
+            >
+              Google
+            </v-btn>
           </v-row>
 
           <div class="text-center">
             <p class="text-body-2 text-grey-lighten-1">
-              Ainda não tem conta? 
-              <router-link to="/register" class="text-gradient-link font-weight-bold text-decoration-none ml-1">
+              Ainda não tem conta?
+              <router-link
+                to="/register"
+                class="text-gradient-link font-weight-bold text-decoration-none ml-1"
+              >
                 Criar conta
               </router-link>
             </p>
@@ -109,7 +119,13 @@ meta:
       </v-col>
     </v-row>
 
-    <v-snackbar v-model="hasError" color="error" location="top" timeout="3000" rounded="lg">
+    <v-snackbar
+      v-model="hasError"
+      color="error"
+      location="top"
+      timeout="3000"
+      rounded="lg"
+    >
       <div class="d-flex align-center">
         <v-icon icon="mdi-alert-circle" start class="mr-2"></v-icon>
         <span class="font-weight-medium">{{ errorMessage }}</span>
@@ -119,11 +135,11 @@ meta:
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref } from "vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
-const formRef = ref(null); 
+const formRef = ref(null);
 const email = ref("");
 const password = ref("");
 const showPass = ref(false);
@@ -136,10 +152,6 @@ const rules = {
   required: (v) => !!v || "Campo obrigatório",
   email: (v) => /.+@.+\..+/.test(v) || "E-mail inválido",
 };
-
-onMounted(() => {
-  auth.checkOAuthCallback();
-});
 
 const handleLogin = async () => {
   const { valid: formValid } = await formRef.value.validate();
@@ -159,9 +171,13 @@ const handleLogin = async () => {
 <style scoped>
 .landing-bg {
   background-color: #0f172a;
-  background-image: radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-                    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-                    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+  background-image: radial-gradient(
+      at 0% 0%,
+      hsla(253, 16%, 7%, 1) 0,
+      transparent 50%
+    ),
+    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
   position: relative;
   overflow: hidden;
 }
@@ -177,15 +193,20 @@ const handleLogin = async () => {
   background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
   transition: opacity 0.3s ease;
 }
-.btn-gradient:hover { opacity: 0.9; }
+.btn-gradient:hover {
+  opacity: 0.9;
+}
 
-.text-gradient-link, .text-gradient-icon {
+.text-gradient-link,
+.text-gradient-icon {
   background: linear-gradient(to right, #6366f1, #ec4899);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
-.text-gradient-icon { color: #a855f7 !important; }
+.text-gradient-icon {
+  color: #a855f7 !important;
+}
 
 .bg-blob {
   position: absolute;
@@ -194,13 +215,34 @@ const handleLogin = async () => {
   opacity: 0.4;
   z-index: 0;
 }
-.blob-1 { width: 400px; height: 400px; background: #4f46e5; top: -100px; left: -100px; }
-.blob-2 { width: 300px; height: 300px; background: #ec4899; bottom: -50px; right: -50px; }
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: #4f46e5;
+  top: -100px;
+  left: -100px;
+}
+.blob-2 {
+  width: 300px;
+  height: 300px;
+  background: #ec4899;
+  bottom: -50px;
+  right: -50px;
+}
 
-.z-index-1 { position: relative; z-index: 1; }
-.opacity-20 { opacity: 0.2; }
-.glass-btn:hover { background: rgba(255,255,255,0.1) !important; }
-.border-highlight { border: 1px solid rgba(168, 85, 247, 0.3); }
+.z-index-1 {
+  position: relative;
+  z-index: 1;
+}
+.opacity-20 {
+  opacity: 0.2;
+}
+.glass-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+.border-highlight {
+  border: 1px solid rgba(168, 85, 247, 0.3);
+}
 
 .hover-highlight:hover {
   color: #a855f7 !important;

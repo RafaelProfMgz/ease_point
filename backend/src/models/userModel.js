@@ -1,12 +1,35 @@
 const supabaseAdmin = require("../config/supabaseAdmin");
-
 class UserModel {
+  static async create(userData) {
+    const { data, error } = await supabaseAdmin
+      .from("users")
+      .insert([userData])
+      .select();
+
+    if (error) throw new Error(error.message);
+    return data[0];
+  }
+
   static async findById(id) {
     const { data, error } = await supabaseAdmin
       .from("users")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data;
+  }
+
+  static async findByEmail(email) {
+    const { data, error } = await supabaseAdmin
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
 
     if (error) throw new Error(error.message);
     return data;

@@ -3,25 +3,14 @@ const router = express.Router();
 const controller = require("../controllers/providerController");
 const authMiddleware = require("../middlewares/authMiddleware");
 
-router.get("/provider/google", controller.getGoogleUrl);
-router.get("/provider/github", controller.getGithubUrl);
-router.get("/provider/facebook", controller.getFacebookUrl);
+router.get("/google", controller.getGoogleUrl);
 
-// --- ROTAS PROTEGIDAS ---
-router.get(
-  "/provider/github/callback",
+router.post(
+  "/google-complete",
   authMiddleware,
-  controller.githubCallback
+  controller.completeGoogleSignup
 );
-router.get(
-  "/provider/google/callback",
-  authMiddleware,
-  controller.googleCallback
-);
-router.get(
-  "/provider/facebook/callback",
-  authMiddleware,
-  controller.facebookCallback
-);
+
+router.get("/provider-data", authMiddleware, controller.getProviderData);
 
 module.exports = router;

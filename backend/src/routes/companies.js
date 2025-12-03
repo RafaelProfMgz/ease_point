@@ -6,8 +6,6 @@ const authMiddleware = require("../middlewares/authMiddleware");
 router.post("/", controller.createCompany);
 router.get("/:id", controller.findCompanyById);
 
-router.post("/google-setup", controller.completeGoogleRegistration);
-
 // --- ROTAS PROTEGIDAS ---
 router.put("/:id", authMiddleware, controller.updateCompany);
 router.delete("/:id", authMiddleware, controller.deleteCompany);

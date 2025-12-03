@@ -4,7 +4,7 @@ meta:
 </route>
 
 <template>
-  <v-container class="fill-height landing-bg" fluid>
+  <v-container class="fill-height landing-bg overflow-hidden" fluid>
     <div class="bg-blob blob-1"></div>
     <div class="bg-blob blob-2"></div>
     <div class="bg-blob blob-3"></div>
@@ -148,19 +148,40 @@ meta:
                 ></v-text-field>
               </v-col>
             </v-row>
+            <v-row dense>
+              <v-btn
+                block
+                size="x-large"
+                type="submit"
+                class="mt-8 btn-gradient text-white text-none font-weight-bold"
+                rounded="xl"
+                elevation="10"
+                :loading="loading"
+              >
+                Criar Conta e Acessar
+              </v-btn>
+            </v-row>
+          </v-form>
 
+          <div class="d-flex align-center text-center justify-center my-6">
+            <span class="text-caption px-10 text-grey-lighten-2 text-uppercase"
+              >ou cadastrar com</span
+            >
+          </div>
+
+          <v-row dense class="mb-6">
             <v-btn
               block
-              size="x-large"
-              type="submit"
-              class="mt-8 btn-gradient text-white text-none font-weight-bold"
-              rounded="xl"
-              elevation="10"
-              :loading="loading"
+              variant="outlined"
+              rounded="lg"
+              prepend-icon="mdi-google"
+              @click="auth.createCompanyGoogle()"
+              :loading="auth.loading"
+              class="text-none glass-btn"
             >
-              Criar Conta e Acessar
+              Google
             </v-btn>
-          </v-form>
+          </v-row>
 
           <div class="text-center mt-6">
             <p class="text-body-2 text-grey-lighten-1">
@@ -238,7 +259,7 @@ const handleRegister = async () => {
     await auth.registerCompany(payload);
     showSnackbar("Conta criada com sucesso! Redirecionando...", "success");
     setTimeout(() => {
-      router.push("/dashboard");
+      router.push("/confirm-email");
     }, 1500);
   } catch (e) {
     const msg =

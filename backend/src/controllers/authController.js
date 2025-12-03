@@ -65,3 +65,39 @@ exports.logout = async (req, res) => {
   if (error) return res.status(400).json({ error: error.message });
   res.json({ message: "Logout realizado com sucesso" });
 };
+
+exports.getMe = async (req, res) => {
+  try {
+    const authId = req.user.id;
+    const authEmail = req.user.email;
+
+    console.log(
+      `[Auth] Verificando usuário. ID: ${authId}, Email: ${authEmail}`
+    );
+
+    let user = await UserModel.findById(authId);
+
+    if (!user && authEmail) {
+      console.log(
+        `[Auth] Usuário não encontrado por ID. Tentando por email: ${authEmail}`
+      );
+      user = await UserModel.findByEmail(authEmail);
+
+      if (user) {
+        console.log(
+          "[Auth] Usuário encontrado por E-mail! IDs diferentes detectados."
+        );
+      }
+    }
+
+    if (!user) {
+      console.log("[Auth] Usuário não existe na base. Retornando 404.");
+      return res.status(404).json({ error: "Cadastro incompleto" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("Erro no getMe:", err);
+    res.status(500).json({ error: err.message });
+  }
+};

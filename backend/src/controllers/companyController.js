@@ -45,59 +45,12 @@ exports.createCompany = async (req, res) => {
     console.error("Erro no cadastro:", error.message);
 
     if (newCompanyId) {
-      console.log("Desfazendo criação da empresa:", newCompanyId);
       await CompanyModel.delete(newCompanyId).catch(() =>
-        console.log("Erro ao desfazer")
+        console.error("Erro ao desfazer")
       );
     }
 
     res.status(400).json({ error: error.message });
-  }
-};
-
-exports.completeGoogleRegistration = async (req, res) => {
-  const userId = req.user.id;
-  const userEmail = req.user.email;
-
-  const { companyName, plan, adminName } = req.body;
-
-  const validPlans = ["bronze", "prata", "ouro"];
-  if (!plan || !validPlans.includes(plan)) {
-    return res.status(400).json({ error: "Plano inválido." });
-  }
-
-  try {
-    const existingUser = await UserModel.findById(userId).catch(() => null);
-    if (existingUser && existingUser.length > 0) {
-      return res
-        .status(400)
-        .json({ error: "Usuário já possui cadastro completo." });
-    }
-
-    const company = await CompanyModel.create({ name: companyName, plan });
-
-    try {
-      await UserModel.create({
-        id: userId,
-        name: adminName,
-        email: userEmail,
-        company_id: company.id,
-        role: "admin",
-      });
-    } catch (profileError) {
-      await CompanyModel.delete(company.id);
-      return res
-        .status(400)
-        .json({ error: "Erro ao criar perfil: " + profileError.message });
-    }
-
-    res.status(201).json({
-      message: "Cadastro via provedor completado com sucesso!",
-      company,
-      user: { id: userId, email: userEmail },
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
   }
 };
 

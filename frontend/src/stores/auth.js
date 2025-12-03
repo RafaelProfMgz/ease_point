@@ -29,7 +29,27 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
-    // --- LOGIN ---
+    // --- 1. BUSCAR USUÁRIO ---
+    async fetchUser() {
+      try {
+        const { data } = await api.get("/auth/me");
+        this.setSession(this.token, data);
+        return data;
+      } catch (error) {
+        if (error.response && error.response.status !== 404) {
+          this.clearSession();
+        }
+        throw error;
+      }
+    },
+
+    setToken(token) {
+      this.token = token;
+      localStorage.setItem("ponto_token", token);
+      api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    },
+
+    // --- LOGIN COM EMAIL ---
     async login(email, password) {
       const snackbar = useSnackbarStore();
       this.loading = true;
@@ -37,6 +57,7 @@ export const useAuthStore = defineStore("auth", {
         const { data } = await api.post("/auth/login", { email, password });
         const token = data.session?.access_token || data.token;
         if (!token) throw new Error("Token não recebido");
+
         this.setSession(token, data.user);
         snackbar.showSnackbar(`Bem-vindo, ${data.user.name}!`, "success");
         router.push("/dashboard");
@@ -57,7 +78,7 @@ export const useAuthStore = defineStore("auth", {
           await api.post("/auth/logout");
         }
       } catch (error) {
-        console.error("Erro ao fazer logout na API", error);
+        console.error("Erro ao fazer logout", error);
       } finally {
         this.clearSession();
         snackbar.showSnackbar("Você saiu do sistema.", "info");
@@ -65,71 +86,7 @@ export const useAuthStore = defineStore("auth", {
       }
     },
 
-    // --- ESQUECI A SENHA ---
-    async forgotPassword(email) {
-      const snackbar = useSnackbarStore();
-      this.loading = true;
-      try {
-        await api.post("/users/forgot-password", { email });
-        snackbar.showSnackbar(
-          "Se o e-mail existir, você receberá um link.",
-          "success"
-        );
-      } catch (error) {
-        snackbar.showSnackbar("Erro ao solicitar recuperação.", "error");
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // --- REDEFINIR SENHA ---
-    async resetPassword(password) {
-      const snackbar = useSnackbarStore();
-      this.loading = true;
-
-      try {
-        if (!this.token) {
-          throw new Error(
-            "Sessão inválida. Clique no link do e-mail novamente."
-          );
-        }
-        await api.post("/users/reset-password", { password });
-        snackbar.showSnackbar("Senha alterada com sucesso!", "success");
-        router.push("/dashboard");
-      } catch (error) {
-        const msg = error.response?.data?.error || "Erro ao redefinir senha";
-        snackbar.showSnackbar(msg, "error");
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // --- CADASTRO DE EMPRESA ---
-    async registerCompany(payload) {
-      const snackbar = useSnackbarStore();
-      this.loading = true;
-      try {
-        const { data } = await api.post("/companies", payload);
-
-        if (data.user && data.session) {
-          const token = data.session.access_token;
-          this.setSession(token, data.user);
-        }
-
-        snackbar.showSnackbar("Empresa cadastrada com sucesso!", "success");
-        return data;
-      } catch (error) {
-        const msg = error.response?.data?.error || "Erro ao cadastrar empresa";
-        snackbar.showSnackbar(msg, "error");
-        throw error;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    // --- LOGIN SOCIAL ---
+    // --- LOGIN SOCIAL (CORRIGIDO) ---
     async loginWithProvider(provider) {
       const snackbar = useSnackbarStore();
       this.loading = true;
@@ -144,22 +101,73 @@ export const useAuthStore = defineStore("auth", {
     },
 
     // --- COMPLETAR CADASTRO GOOGLE ---
-    async completeGoogleRegistration(payload) {
+    async completeGoogleSignup(payload) {
       const snackbar = useSnackbarStore();
       this.loading = true;
       try {
-        const { data } = await api.post("/companies/google-setup", payload);
+        const { data } = await api.post("/provider/google-complete", payload);
+
         if (data.user) {
-          this.user = data.user;
-          storage.set("ponto_user", data.user);
+          this.setSession(this.token, data.user);
         }
-        snackbar.showSnackbar("Cadastro concluído!", "success");
+
+        snackbar.showSnackbar("Cadastro finalizado com sucesso!", "success");
+        router.push("/dashboard");
         return data;
       } catch (error) {
-        snackbar.showSnackbar("Erro ao finalizar cadastro.", "error");
+        const msg =
+          error.response?.data?.error || "Erro ao finalizar cadastro.";
+        snackbar.showSnackbar(msg, "error");
         throw error;
       } finally {
         this.loading = false;
+      }
+    },
+
+    // --- CALLBACK DO OAUTH ---
+    async checkOAuthCallback() {
+      const hash = window.location.hash;
+      const snackbar = useSnackbarStore();
+
+      if (hash && hash.includes("access_token")) {
+        const params = new URLSearchParams(hash.substring(1));
+        const accessToken = params.get("access_token");
+        const refreshToken = params.get("refresh_token");
+        const type = params.get("type");
+
+        if (accessToken) {
+          this.setToken(accessToken);
+
+          if (refreshToken) {
+            localStorage.setItem("ponto_refresh_token", refreshToken);
+          }
+
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+
+          if (type === "recovery") {
+            snackbar.showSnackbar("Defina sua nova senha.", "info");
+            router.push("/update-password");
+          } else {
+            try {
+              await this.fetchUser();
+              snackbar.showSnackbar("Login realizado com sucesso!", "success");
+              router.push("/dashboard");
+            } catch (error) {
+              if (error.response && error.response.status === 404) {
+                snackbar.showSnackbar("Finalize seu cadastro.", "info");
+                router.push("/complete-signup");
+              } else {
+                console.error("Erro callback:", error);
+                snackbar.showSnackbar("Falha na autenticação.", "error");
+                this.logout();
+              }
+            }
+          }
+        }
       }
     },
 
@@ -169,7 +177,6 @@ export const useAuthStore = defineStore("auth", {
       this.user = user;
       localStorage.setItem("ponto_token", token);
       storage.set("ponto_user", user);
-
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
     },
 
@@ -177,46 +184,9 @@ export const useAuthStore = defineStore("auth", {
       this.token = null;
       this.user = null;
       localStorage.removeItem("ponto_token");
+      localStorage.removeItem("ponto_refresh_token");
       storage.remove("ponto_user");
       delete api.defaults.headers.common["Authorization"];
-    },
-
-    async checkOAuthCallback() {
-      const hash = window.location.hash;
-
-      if (hash && hash.includes("access_token")) {
-        const params = new URLSearchParams(hash.substring(1));
-        const accessToken = params.get("access_token");
-        const type = params.get("type");
-
-        if (accessToken) {
-          this.token = accessToken;
-          localStorage.setItem("ponto_token", accessToken);
-          api.defaults.headers.common[
-            "Authorization"
-          ] = `Bearer ${accessToken}`;
-
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
-
-          const snackbar = useSnackbarStore();
-
-          if (type === "recovery") {
-            snackbar.showSnackbar("Defina sua nova senha.", "info");
-            router.push("/update-password");
-          } else {
-            try {
-              snackbar.showSnackbar("Login realizado com sucesso!", "success");
-              router.push("/dashboard");
-            } catch (e) {
-              console.error("Erro ao carregar usuário via token");
-            }
-          }
-        }
-      }
     },
   },
 });

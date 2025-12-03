@@ -18,18 +18,6 @@ class AuthModel {
     return result;
   }
 
-  static async getOAuthUrl(provider) {
-    const { data, error } = await supabaseAdmin.auth.signInWithOAuth({
-      provider: provider,
-      options: {
-        redirectTo: "http://localhost:3000/dashboard",
-      },
-    });
-
-    if (error) throw new Error(error.message);
-    return data;
-  }
-
   static async logout() {
     const { error } = await supabaseAdmin.auth.signOut();
     if (error) throw new Error(error.message);
