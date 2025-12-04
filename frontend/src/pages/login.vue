@@ -61,7 +61,6 @@ meta:
             ></v-text-field>
 
             <div class="d-flex justify-end mb-6">
-              <!-- CORREÇÃO DA ROTA AQUI -->
               <router-link
                 to="/forgot-password"
                 class="text-caption text-grey-lighten-1 text-decoration-none hover-highlight"

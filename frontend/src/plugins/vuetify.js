@@ -8,21 +8,8 @@ export default createVuetify({
     defaultTheme: "siteTheme",
     themes: {
       siteTheme: {
-        dark: false,
-        colors: {
-          background: "#FFFFFF",
-
-          surface: "#F8FAFC",
-
-          primary: "#1976D2",
-
-          secondary: "#64748B",
-
-          error: "#EF4444",
-          info: "#3B82F6",
-          success: "#10B981",
-          warning: "#F59E0B",
-        },
+        dark: true,
+        colors: {},
         variables: {
           "border-color": "#E2E8F0",
           "border-opacity": 1,
