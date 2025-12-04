@@ -1,52 +1,56 @@
-import '@mdi/font/css/materialdesignicons.css'
-import 'vuetify/styles'
+import "@mdi/font/css/materialdesignicons.css";
+import "vuetify/styles";
 
-import { createVuetify } from 'vuetify'
+import { createVuetify } from "vuetify";
 
 export default createVuetify({
   theme: {
-    defaultTheme: 'myCustomDark',
+    defaultTheme: "siteTheme",
     themes: {
-      myCustomDark: {
-        dark: true,
+      siteTheme: {
+        dark: false,
         colors: {
-          background: '#0F172A', // Azul noturno profundo (quase preto)
-          surface: '#1E293B',    // Um pouco mais claro para cartões
-          primary: '#38BDF8',    // Azul Ciano brilhante para ações principais
-          secondary: '#94A3B8',  // Cinza azulado para textos secundários
-          error: '#EF4444',
-          info: '#3B82F6',
-          success: '#10B981',
-          warning: '#F59E0B',
+          background: "#FFFFFF",
+
+          surface: "#F8FAFC",
+
+          primary: "#1976D2",
+
+          secondary: "#64748B",
+
+          error: "#EF4444",
+          info: "#3B82F6",
+          success: "#10B981",
+          warning: "#F59E0B",
         },
         variables: {
-          'border-color': '#334155',
-          'border-opacity': 0.12,
-        }
+          "border-color": "#E2E8F0",
+          "border-opacity": 1,
+        },
       },
     },
   },
   defaults: {
     VCard: {
       elevation: 0,
-      variant: 'flat',
-      class: 'rounded-lg border-thin',
+      variant: "flat",
+      class: "rounded-lg border-thin",
     },
     VBtn: {
-      variant: 'flat',
+      variant: "flat",
       height: 44,
-      class: 'text-none rounded-md',
+      class: "text-none rounded-md",
     },
     VTextField: {
-      variant: 'outlined',
-      density: 'comfortable',
-      color: 'primary',
-      hideDetails: 'auto',
+      variant: "outlined",
+      density: "comfortable",
+      color: "primary",
+      hideDetails: "auto",
     },
     VSelect: {
-      variant: 'outlined',
-      density: 'comfortable',
-      color: 'primary',
+      variant: "outlined",
+      density: "comfortable",
+      color: "primary",
     },
   },
-})
+});

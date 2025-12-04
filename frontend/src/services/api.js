@@ -1,22 +1,22 @@
 import axios from "axios";
 
+const apiURL =
+  import.meta.env.VITE_API_URL || "https://ease-point.onrender.com";
+
 const api = axios.create({
-  baseURL: "https://ease-point.onrender.com",
+  baseURL: apiURL,
+  timeout: 30000,
 });
 
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("ponto_token");
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
