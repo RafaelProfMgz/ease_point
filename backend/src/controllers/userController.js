@@ -10,8 +10,10 @@ exports.forgotPassword = async (req, res) => {
       return res.status(400).json({ error: "O e-mail é obrigatório." });
     }
 
+    const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.FRONTEND_URL}/update-password`,
+      redirectTo: `${redirectBase}/update-password`,
     });
 
     if (error) {

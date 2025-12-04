@@ -11,8 +11,30 @@ const providerRoutes = require("./routes/provider");
 
 const app = express();
 
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:3000",
+  "http://localhost:5173",
+  (process.env.FRONTEND_URL || "").replace(/\/$/, ""),
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Bloqueado pelo CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.send("API do Sistema de Ponto está rodando");
+});
 
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 app.use("/companies", companyRoutes);
