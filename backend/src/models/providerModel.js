@@ -2,9 +2,8 @@ const supabaseAdmin = require("../config/supabaseAdmin");
 
 class ProviderModel {
   static async getOAuthUrl(provider) {
-    const redirectBase = process.env.FRONTEND_URL || "http://localhost:3000";
-
-    console.log("Redirect Base sendo usada:", redirectBase);
+    const urlFromEnv = process.env.FRONTEND_URL || "http://localhost:3000";
+    const redirectBase = urlFromEnv.replace(/\/$/, "");
 
     const { data, error } = await supabaseAdmin.auth.signInWithOAuth({
       provider: provider,
